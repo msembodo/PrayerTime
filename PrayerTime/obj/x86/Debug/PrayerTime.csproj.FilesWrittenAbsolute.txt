@@ -1,0 +1,6 @@
+/home/msembodo/Projects/PrayerTime/PrayerTime/obj/x86/Debug/.NETFramework,Version=v4.0.AssemblyAttribute.cs
+/home/msembodo/Projects/PrayerTime/PrayerTime/bin/Debug/PrayerTime.exe.mdb
+/home/msembodo/Projects/PrayerTime/PrayerTime/bin/Debug/PrayerTime.exe
+/home/msembodo/Projects/PrayerTime/PrayerTime/obj/x86/Debug/PrayerTime.exe
+/home/msembodo/Projects/PrayerTime/PrayerTime/obj/x86/Debug/PrayerTime.exe.mdb
+/home/msembodo/Projects/PrayerTime/PrayerTime/bin/Debug/GoogleMaps.LocationServices.dll
