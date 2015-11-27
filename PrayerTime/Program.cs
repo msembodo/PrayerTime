@@ -11,66 +11,76 @@ namespace PrayerTime
 			// Reference: Egyptian General Authority of Survey
 			// Fajr twilight: -19.5
 			// Isha twilight: -17.5
+			try {
+				if (args.Length !=1)
+					throw new ApplicationException("No command line argument.");
 
-			string address = args [0];
+				string address = args [0];
 
-			// Using GoogleMaps.LocationServices class to get Latitude and Longitude.
-			var locationService = new GoogleLocationService ();
+				// Using GoogleMaps.LocationServices class to get Latitude and Longitude.
+				var locationService = new GoogleLocationService ();
 
-			var point = locationService.GetLatLongFromAddress (address);
-			var latitude = point.Latitude;
-			var longitude = point.Longitude;
+				var point = locationService.GetLatLongFromAddress (address);
+				var latitude = point.Latitude;
+				var longitude = point.Longitude;
 
-			const string dataFmt = "{0,-25}{1}";
-			const string timeFmt = "{0,-25}{1:yyyy-MM-dd HH:mm}";
+				const string dataFmt = "{0,-25}{1}";
+				const string timeFmt = "{0,-25}{1:yyyy-MM-dd HH:mm}";
 
-			// Get local time zone and current local time and year.
-			TimeZone localZone = TimeZone.CurrentTimeZone;
-			DateTime currentDate = DateTime.Now;
-			int currentYear = currentDate.Year;
-			int currentMonth = currentDate.Month;
-			int currentDay = currentDate.Day;
+				// Get local time zone and current local time and year.
+				TimeZone localZone = TimeZone.CurrentTimeZone;
+				DateTime currentDate = DateTime.Now;
+				int currentYear = currentDate.Year;
+				int currentMonth = currentDate.Month;
+				int currentDay = currentDate.Day;
 
-			Console.WriteLine (dataFmt, "Standard time name: ", localZone.StandardName);
-			Console.WriteLine (timeFmt, "Current date and time: ", currentDate);
+				Console.WriteLine (dataFmt, "Standard time name: ", localZone.StandardName);
+				Console.WriteLine (timeFmt, "Current date and time: ", currentDate);
 
-			TimeSpan currentOffset = localZone.GetUtcOffset (currentDate);
+				TimeSpan currentOffset = localZone.GetUtcOffset (currentDate);
 
-			int gmtOffset = currentOffset.Hours;
+				int gmtOffset = currentOffset.Hours;
 
-			Console.WriteLine (dataFmt, "UTC offset: ", currentOffset);
+				Console.WriteLine (dataFmt, "UTC offset: ", currentOffset);
 
-			double fajr, sunRise, zuhr, asr, maghrib, isha;
-			fajr = 0; sunRise = 0; zuhr = 0; asr = 0; maghrib = 0; isha = 0;
+				double fajr, sunRise, zuhr, asr, maghrib, isha;
+				fajr = 0; sunRise = 0; zuhr = 0; asr = 0; maghrib = 0; isha = 0;
 
-			// Generate prayer times based on given location and local time.
-			CalcPrayerTimes (currentYear, currentMonth, currentDay, longitude, latitude, gmtOffset, -19.5, -17.5,
-				ref fajr, ref sunRise, ref zuhr, ref asr, ref maghrib, ref isha);
+				// Generate prayer times based on given location and local time.
+				CalcPrayerTimes (currentYear, currentMonth, currentDay, longitude, latitude, gmtOffset, -19.5, -17.5,
+					ref fajr, ref sunRise, ref zuhr, ref asr, ref maghrib, ref isha);
 
-			int hours, minutes;
-			hours = 0; minutes = 0;
+				int hours, minutes;
+				hours = 0; minutes = 0;
 
-			Console.WriteLine (dataFmt, "Latitude:", latitude);
-			Console.WriteLine (dataFmt, "Longitude:", longitude);
-			Console.WriteLine ();
+				Console.WriteLine (dataFmt, "Latitude:", latitude);
+				Console.WriteLine (dataFmt, "Longitude:", longitude);
+				Console.WriteLine ();
 
-			DoubleToHrMin (fajr, ref hours, ref minutes);
-			Console.WriteLine ("Fajr    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+				DoubleToHrMin (fajr, ref hours, ref minutes);
+				Console.WriteLine ("Fajr    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
 
-			DoubleToHrMin (sunRise, ref hours, ref minutes);
-			Console.WriteLine ("Sunrise - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+				DoubleToHrMin (sunRise, ref hours, ref minutes);
+				Console.WriteLine ("Sunrise - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
 
-			DoubleToHrMin (zuhr, ref hours, ref minutes);
-			Console.WriteLine ("Zuhr    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+				DoubleToHrMin (zuhr, ref hours, ref minutes);
+				Console.WriteLine ("Zuhr    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
 
-			DoubleToHrMin (asr, ref hours, ref minutes);
-			Console.WriteLine ("Asr     - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+				DoubleToHrMin (asr, ref hours, ref minutes);
+				Console.WriteLine ("Asr     - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
 
-			DoubleToHrMin (maghrib, ref hours, ref minutes);
-			Console.WriteLine ("Maghrib - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+				DoubleToHrMin (maghrib, ref hours, ref minutes);
+				Console.WriteLine ("Maghrib - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
 
-			DoubleToHrMin (isha, ref hours, ref minutes);
-			Console.WriteLine ("Isha    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+				DoubleToHrMin (isha, ref hours, ref minutes);
+				Console.WriteLine ("Isha    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+			}
+
+			catch (ApplicationException) {
+				Console.WriteLine ("\nPrayerTime: missing location");
+				Console.WriteLine ("Usage: PrayerTime [location]...");
+				Console.WriteLine ("Example: PrayerTime 'London, UK'\n");
+			}
 		}
 
 		static void CalcPrayerTimes(int year, int month, int day,
