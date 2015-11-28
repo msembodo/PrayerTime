@@ -4,3 +4,4 @@
 /home/msembodo/Projects/PrayerTime/PrayerTime/obj/x86/Debug/PrayerTime.exe
 /home/msembodo/Projects/PrayerTime/PrayerTime/obj/x86/Debug/PrayerTime.exe.mdb
 /home/msembodo/Projects/PrayerTime/PrayerTime/bin/Debug/GoogleMaps.LocationServices.dll
+/home/msembodo/Projects/PrayerTime/PrayerTime/bin/Debug/RestSharp.dll

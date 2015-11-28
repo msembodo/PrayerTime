@@ -1,62 +1,72 @@
+/*
+PrayerTime -- A command line utility to print prayer times based on location input.
+2015 Martyono Sembodo (martyono.sembodo@gmail.com)
+*/
+
 using System;
-using GoogleMaps.LocationServices;
 using System.Globalization;
+using GoogleMaps.LocationServices;
+using RestSharp;
 
 namespace PrayerTime
 {
 	class MainClass
 	{
+		static string timeZoneId;
+		static string timeZoneName;
+
 		public static void Main (string[] args)
 		{
-			// Reference: Egyptian General Authority of Survey
-			// Fajr twilight: -19.5
-			// Isha twilight: -17.5
+			/* 
+			Reference: Egyptian General Authority of Survey
+			Fajr twilight: -19.5 degree
+			Isha twilight: -17.5 degree
+			*/
 			try {
-				if (args.Length !=1)
+				if (args.Length != 1)
 					throw new ApplicationException("No command line argument.");
 
 				string address = args [0];
+				double fajr, sunRise, zuhr, asr, maghrib, isha;
+				fajr = 0; sunRise = 0; zuhr = 0; asr = 0; maghrib = 0; isha = 0;
+				int hours, minutes;
+				hours = 0; minutes = 0;
+				const string dataFmt = "{0,-25}{1}";
+				const string timeFmt = "{0,-25}{1:yyyy-MM-dd HH:mm}";
 
 				// Using GoogleMaps.LocationServices class to get Latitude and Longitude.
 				var locationService = new GoogleLocationService ();
-
 				var point = locationService.GetLatLongFromAddress (address);
 				var latitude = point.Latitude;
 				var longitude = point.Longitude;
 
-				const string dataFmt = "{0,-25}{1}";
-				const string timeFmt = "{0,-25}{1:yyyy-MM-dd HH:mm}";
+				// Call to Google API.
+				var myDateTime = GetLocalDateTime(latitude, longitude, DateTime.UtcNow);
 
 				// Get local time zone and current local time and year.
-				TimeZone localZone = TimeZone.CurrentTimeZone;
-				DateTime currentDate = DateTime.Now;
+				DateTime currentDate = myDateTime;
 				int currentYear = currentDate.Year;
 				int currentMonth = currentDate.Month;
 				int currentDay = currentDate.Day;
 
-				Console.WriteLine (dataFmt, "Standard time name: ", localZone.StandardName);
-				Console.WriteLine (timeFmt, "Current date and time: ", currentDate);
-
-				TimeSpan currentOffset = localZone.GetUtcOffset (currentDate);
-
+				// Get UTC offset.
+				TimeZoneInfo tzi = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+				TimeSpan currentOffset = tzi.GetUtcOffset(myDateTime);
 				int gmtOffset = currentOffset.Hours;
 
+				// Print time details.
+				Console.WriteLine (dataFmt, "Standard time name: ", timeZoneName);
+				Console.WriteLine (timeFmt, "Current date and time: ", currentDate);
 				Console.WriteLine (dataFmt, "UTC offset: ", currentOffset);
-
-				double fajr, sunRise, zuhr, asr, maghrib, isha;
-				fajr = 0; sunRise = 0; zuhr = 0; asr = 0; maghrib = 0; isha = 0;
+				Console.WriteLine (dataFmt, "Latitude:", latitude);
+				Console.WriteLine (dataFmt, "Longitude:", longitude);
+				Console.WriteLine ();
 
 				// Generate prayer times based on given location and local time.
 				CalcPrayerTimes (currentYear, currentMonth, currentDay, longitude, latitude, gmtOffset, -19.5, -17.5,
 					ref fajr, ref sunRise, ref zuhr, ref asr, ref maghrib, ref isha);
 
-				int hours, minutes;
-				hours = 0; minutes = 0;
-
-				Console.WriteLine (dataFmt, "Latitude:", latitude);
-				Console.WriteLine (dataFmt, "Longitude:", longitude);
-				Console.WriteLine ();
-
+				// Print prayer times.
 				DoubleToHrMin (fajr, ref hours, ref minutes);
 				Console.WriteLine ("Fajr    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
 
@@ -81,8 +91,12 @@ namespace PrayerTime
 				Console.WriteLine ("Usage: PrayerTime [location]...");
 				Console.WriteLine ("Example: PrayerTime 'London, UK'\n");
 			}
-		}
+		} // end Main()
 
+		/*
+		Original algorithm is in C++ by Mahmoud Adly Ezzat.
+		http://3adly.blogspot.co.id/2010/07/prayer-times-calculations-pure-c-code.html
+		*/
 		static void CalcPrayerTimes(int year, int month, int day,
 		                            double longitude, double latitude, int timezone,
 		                            double fajrTwilight, double ishaTwilight,
@@ -144,7 +158,7 @@ namespace PrayerTime
 			fajrTime = zuhrTime - (Fajr_Arc / 15);
 
 			return;
-		}
+		} // end CalcPrayerTimes()
 
 		// Convert Degree to Radian
 		static double DegToRad(double degree) {
@@ -185,5 +199,40 @@ namespace PrayerTime
 			hours = (int)Math.Floor (MoreLess24(number));
 			minutes = (int)Math.Floor (MoreLess24(number - hours) * 60);
 		}
+
+		public static DateTime GetLocalDateTime(double latitude, double longitude, DateTime utcDate)
+		{
+			var client = new RestClient("https://maps.googleapis.com");
+			var request = new RestRequest("maps/api/timezone/json", Method.GET);
+			request.AddParameter("location", latitude + "," + longitude);
+			request.AddParameter("timestamp", utcDate.ToTimestamp());
+			request.AddParameter("sensor", "false");
+			var response = client.Execute<GoogleTimeZone>(request);
+
+			timeZoneId = response.Data.timeZoneId;
+			timeZoneName = response.Data.timeZoneName;
+
+			return utcDate.AddSeconds(response.Data.rawOffset + response.Data.dstOffset);
+		}
+	} // end class MainClass
+
+	public class GoogleTimeZone 
+	{
+		public double dstOffset { get; set; }
+		public double rawOffset { get; set; }
+		public string status { get; set; }
+		public string timeZoneId { get; set; }
+		public string timeZoneName { get; set; }
 	}
-}
+
+	public static class ExtensionMethods 
+	{
+		public static double ToTimestamp(this DateTime date)
+		{
+			DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+			TimeSpan diff = date.ToUniversalTime() - origin;
+			return Math.Floor(diff.TotalSeconds);
+		}
+	}
+		
+} // end namespace
