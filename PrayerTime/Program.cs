@@ -12,8 +12,8 @@ namespace PrayerTime
 {
 	class MainClass
 	{
-		static string timeZoneId;
 		static string timeZoneName;
+		static double currentOffset;
 
 		public static void Main (string[] args)
 		{
@@ -40,7 +40,7 @@ namespace PrayerTime
 				var latitude = point.Latitude;
 				var longitude = point.Longitude;
 
-				// Call to Google API.
+				// Get time zone info from Google Maps API.
 				var myDateTime = GetLocalDateTime(latitude, longitude, DateTime.UtcNow);
 
 				// Get local time zone and current local time and year.
@@ -50,20 +50,18 @@ namespace PrayerTime
 				int currentDay = currentDate.Day;
 
 				// Get UTC offset.
-				TimeZoneInfo tzi = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-				TimeSpan currentOffset = tzi.GetUtcOffset(myDateTime);
-				int gmtOffset = currentOffset.Hours;
+				int offsetHours = Convert.ToInt32(currentOffset / 3600);
 
 				// Print time details.
 				Console.WriteLine (dataFmt, "Standard time name: ", timeZoneName);
 				Console.WriteLine (timeFmt, "Current date and time: ", currentDate);
-				Console.WriteLine (dataFmt, "UTC offset: ", currentOffset);
+				Console.WriteLine (dataFmt, "UTC offset: ", offsetHours);
 				Console.WriteLine (dataFmt, "Latitude:", latitude);
 				Console.WriteLine (dataFmt, "Longitude:", longitude);
 				Console.WriteLine ();
 
 				// Generate prayer times based on given location and local time.
-				CalcPrayerTimes (currentYear, currentMonth, currentDay, longitude, latitude, gmtOffset, -19.5, -17.5,
+				CalcPrayerTimes (currentYear, currentMonth, currentDay, longitude, latitude, offsetHours, -19.5, -17.5,
 					ref fajr, ref sunRise, ref zuhr, ref asr, ref maghrib, ref isha);
 
 				// Print prayer times.
@@ -200,6 +198,7 @@ namespace PrayerTime
 			minutes = (int)Math.Floor (MoreLess24(number - hours) * 60);
 		}
 
+		// Connect to Google Maps Time Zone API.
 		public static DateTime GetLocalDateTime(double latitude, double longitude, DateTime utcDate)
 		{
 			var client = new RestClient("https://maps.googleapis.com");
@@ -209,8 +208,8 @@ namespace PrayerTime
 			request.AddParameter("sensor", "false");
 			var response = client.Execute<GoogleTimeZone>(request);
 
-			timeZoneId = response.Data.timeZoneId;
 			timeZoneName = response.Data.timeZoneName;
+			currentOffset = response.Data.rawOffset;
 
 			return utcDate.AddSeconds(response.Data.rawOffset + response.Data.dstOffset);
 		}
