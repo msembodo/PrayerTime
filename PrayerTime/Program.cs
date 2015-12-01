@@ -135,7 +135,7 @@ namespace PrayerTime
 			catch (ApplicationException) {
 				Console.WriteLine ("\nPrayerTime: missing location");
 				Console.WriteLine ("Usage: PrayerTime [location]...");
-				Console.WriteLine ("Example: PrayerTime 'London, UK'\n");
+				Console.WriteLine ("Example: PrayerTime \"London, UK\"\n");
 			}
 		} // end Main()
 
