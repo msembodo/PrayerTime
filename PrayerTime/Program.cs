@@ -49,6 +49,11 @@ namespace PrayerTime
 				int currentMonth = currentDate.Month;
 				int currentDay = currentDate.Day;
 
+				// Convert current DateTime time to double.
+				int currentHour = currentDate.Hour;
+				int currentMinute = currentDate.Minute;
+				double currentTime = currentHour + (currentMinute / 60.0);
+
 				// Get UTC offset.
 				int offsetHours = Convert.ToInt32(currentOffset / 3600);
 
@@ -64,24 +69,67 @@ namespace PrayerTime
 				CalcPrayerTimes (currentYear, currentMonth, currentDay, longitude, latitude, offsetHours, -19.5, -17.5,
 					ref fajr, ref sunRise, ref zuhr, ref asr, ref maghrib, ref isha);
 
+				// Check to see currentTime goes to which prayer time.
+				bool isFajr = false; bool isZuhr = false; bool isAsr = false; bool isMaghrib = false; bool isIsha = false;
+
+				if (currentTime < fajr)
+					isIsha = true;
+				else if (currentTime < sunRise)
+					isFajr = true;
+				else if (currentTime < zuhr)
+					isZuhr = false;
+				else if (currentTime < asr)
+					isZuhr = true;
+				else if (currentTime < maghrib)
+					isAsr = true;
+				else if (currentTime < isha)
+					isMaghrib = true;
+				else if (currentTime >= isha)
+					isIsha = true;
+
 				// Print prayer times.
 				DoubleToHrMin (fajr, ref hours, ref minutes);
-				Console.WriteLine ("Fajr    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+				if (isFajr) {
+					Console.ForegroundColor = ConsoleColor.Green;
+					Console.WriteLine ("Fajr    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+					Console.ResetColor();
+				} else
+					Console.WriteLine ("Fajr    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
 
 				DoubleToHrMin (sunRise, ref hours, ref minutes);
 				Console.WriteLine ("Sunrise - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
 
 				DoubleToHrMin (zuhr, ref hours, ref minutes);
-				Console.WriteLine ("Zuhr    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+				if (isZuhr) {
+					Console.ForegroundColor = ConsoleColor.Green;
+					Console.WriteLine ("Zuhr    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+					Console.ResetColor();
+				} else
+					Console.WriteLine ("Zuhr    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
 
 				DoubleToHrMin (asr, ref hours, ref minutes);
-				Console.WriteLine ("Asr     - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+				if (isAsr) {
+					Console.ForegroundColor = ConsoleColor.Green;
+					Console.WriteLine ("Asr     - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+					Console.ResetColor();
+				} else
+					Console.WriteLine ("Asr     - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
 
 				DoubleToHrMin (maghrib, ref hours, ref minutes);
-				Console.WriteLine ("Maghrib - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+				if (isMaghrib) {
+					Console.ForegroundColor = ConsoleColor.Green;
+					Console.WriteLine ("Maghrib - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+					Console.ResetColor();
+				} else
+					Console.WriteLine ("Maghrib - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
 
 				DoubleToHrMin (isha, ref hours, ref minutes);
-				Console.WriteLine ("Isha    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+				if (isIsha) {
+					Console.ForegroundColor = ConsoleColor.Green;
+					Console.WriteLine ("Isha    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
+					Console.ResetColor();
+				} else
+					Console.WriteLine ("Isha    - {0}:{1}", hours.ToString("00"), minutes.ToString("00"));
 			}
 
 			catch (ApplicationException) {
