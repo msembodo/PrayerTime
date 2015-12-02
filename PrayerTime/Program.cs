@@ -137,6 +137,12 @@ namespace PrayerTime
 				Console.WriteLine ("Usage: PrayerTime [location]...");
 				Console.WriteLine ("Example: PrayerTime \"London, UK\"\n");
 			}
+
+			catch (NullReferenceException) {
+				Console.WriteLine ("\nPrayerTime: location is unknown");
+				Console.WriteLine ("Usage: PrayerTime [location]...");
+				Console.WriteLine ("Example: PrayerTime \"London, UK\"\n");
+			}
 		} // end Main()
 
 		/*
@@ -263,6 +269,7 @@ namespace PrayerTime
 		}
 	} // end class MainClass
 
+	// Wrapper class for JSON object.
 	public class GoogleTimeZone 
 	{
 		public double dstOffset { get; set; }
